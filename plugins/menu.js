@@ -122,8 +122,7 @@ let handler = async (m, { conn, usedPrefix, command, args }) => {
    let fitur = Object.values(plugins).filter(v => v.help).map(v => v.help).flat(1);
    let tUser = Object.keys(db.data.users).length;
    let userReg = Object.values(global.db.data.users).filter(user => user.registered == true).length
-   let headers = `إعتبرني : رفيقك ، أستاذك ، وعزوتك ، الذي ستجده صامداً بجانبك كل يوم.. لأجعل لك من "نجمة ستة" ومن استخدام تطبيق الواتساب هيبة وطعماً آخر ⚔️🛡️🐗\n\n`
-
+   let headers = `🌟 مرحباً بك في عالم إينوسكي بوت ⚔️🐗\n\n✨ أنا رفيقك الوفي، سيفك الحاد، ودرعك الذي لا ينكسر...\n🔥 سأجعل تجربة واتسابك أقوى، أجمل، وأكثر تميزاً\n🛡️ اختر ما تريد، ودعني أكون بجانبك في كل خطوة ⚔️\n\n`
 
   if (cmd === 'list') {
     const daftarTag = Object.keys(tagCount)
