@@ -1,7 +1,5 @@
-// scrape by malik 
 import axios from 'axios'
 import { Blob, FormData } from 'formdata-node'
-
 class NoiseReducer {
   constructor() {
     this.uploadUrl = "https://apiv2.noise-reducer.com/denoiser/v3/noise-reductions/upload/"
@@ -22,7 +20,6 @@ class NoiseReducer {
       "Sec-Fetch-Site": "same-site"
     }
   }
-
   async getServerTime() {
     try {
       const response = await axios.get(this.serverTimeUrl, { headers: this.headers })
@@ -31,7 +28,6 @@ class NoiseReducer {
       return new Date().toISOString()
     }
   }
-
   async noiseRemove(buffer, mime = "audio/mpeg") {
     const filename = "input.mp3"
     const blob = new Blob([buffer], { type: mime })
@@ -44,25 +40,20 @@ class NoiseReducer {
     form.set("original_file_name", filename)
     form.set("upload_started_at", await this.getServerTime())
     form.set("pre_processing_time", "16")
-
     const uploadRes = await axios.post(this.uploadUrl, form, {
       headers: {
         ...this.uploadHeaders,
         ...form.headers
       }
     })
-
     const task = uploadRes.data.noise_reduction_infos?.[0]
     const token = uploadRes.data.access_token
     if (!task?.id || !token) throw new Error("❌ فشل في بدء المعالجة.")
-
     return await this.poll(task.id, token)
   }
-
   async poll(taskId, token) {
     const url = `https://apiv2.noise-reducer.com/denoiser/v3/noise-reductions/${taskId}/`
     const headers = { ...this.headers, 'access-token': token }
-
     while (true) {
       const { data } = await axios.get(url, { headers })
       if (data.conversion_status === 3 && data.output_audio)
@@ -71,12 +62,9 @@ class NoiseReducer {
     }
   }
 }
-
 let handler = async (m, { conn, text }) => {
   let buffer, mime
   const quoted = m.quoted ? m.quoted : m
-
-  // تحميل من رابط
   if (text && text.startsWith('http')) {
     try {
       const res = await axios.get(text, { responseType: 'arraybuffer' })
@@ -86,7 +74,6 @@ let handler = async (m, { conn, text }) => {
       return m.reply('❌ فشل تحميل الملف من الرابط.')
     }
   }
-  // تحميل من صوت مرسل أو بالرد
   else if (quoted?.mimetype?.startsWith('audio')) {
     try {
       buffer = await quoted.download()
@@ -97,9 +84,7 @@ let handler = async (m, { conn, text }) => {
   } else {
     return m.reply('🎧 أرسل رابط أو رد على ملف صوتي.')
   }
-
   m.reply('🔄 جاري إزالة الضوضاء من الصوت، المرجو الانتظار قليلاً...')
-
   try {
     const reducer = new NoiseReducer()
     const result = await reducer.noiseRemove(buffer, mime)
@@ -109,10 +94,8 @@ let handler = async (m, { conn, text }) => {
     m.reply(err.message)
   }
 }
-
 handler.help = ['noiseremove']
 handler.tags = ['tools']
 handler.command = ['noiseremove']
 handler.limit = true
-
 export default handler
