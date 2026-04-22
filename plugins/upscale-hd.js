@@ -1,0 +1,52 @@
+import fetch from 'node-fetch'
+import FormData from 'form-data'
+let handler = async (m, { conn, usedPrefix, command }) => {
+  const quoted = m.quoted ? m.quoted : m
+  const mime = quoted.mimetype || quoted.msg?.mimetype || ''
+  if (!/image\/(jpe?g|png)/i.test(mime)) {
+    await conn.sendMessage(m.chat, { react: { text: '❗', key: m.key } })
+    return m.reply(`Send or *reply to an image* with the command:\n*${usedPrefix + command}*`)
+  }
+  try {
+    await conn.sendMessage(m.chat, { react: { text: '⏳', key: m.key } })
+    const media = await quoted.download()
+    const ext = mime.split('/')[1]
+    const filename = `upscaled_${Date.now()}.${ext}`
+    const form = new FormData()
+    form.append('image', media, { filename, contentType: mime })
+    form.append('scale', '2')
+    const headers = {
+      ...form.getHeaders(),
+      'accept': 'application/json',
+      'x-client-version': 'web',
+      'x-locale': 'en'
+    }
+    const res = await fetch('https://api2.pixelcut.app/image/upscale/v1', {
+      method: 'POST',
+      headers,
+      body: form
+    })
+    const json = await res.json()
+    if (!json?.result_url || !json.result_url.startsWith('http')) {
+      throw new Error('فشل to retrieve result URL from Pixelcut.')
+    }
+    const resultBuffer = await (await fetch(json.result_url)).buffer()
+    await conn.sendMessage(m.chat, {
+      image: resultBuffer,
+      caption: `
+✨ Your image has been upscaled to 2x resolution.
+📈 Sharper quality & clearer details.
+🔧 _Use this feature anytime to enhance blurry images._
+`.trim()
+    }, { quoted: m })
+    await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
+  } catch (err) {
+    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
+    m.reply(`❌ Upscaling failed:\n${err.message || err}`)
+  }
+}
+handler.help = ['upscale-hd']
+handler.tags = ['editor']
+handler.command = /^upscale-hd$/i
+handler.limit = true
+export default handler
