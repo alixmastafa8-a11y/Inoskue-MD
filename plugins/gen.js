@@ -19,7 +19,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         return m.reply(`❗ Please write a prompt.\nمثال:\n${usedPrefix + command} مدينة مستقبلية فالغروب`);
     let originalPrompt = args.join(" ");
     await m.reply(
-      "⏳ المرجو الانتظار قليلاً، لا تنسى تتابع:\ninstagram.com/noureddine_ouafy"
+      "المرجو إنتضار قليلا🍷 لاتنسى متابعة قناة البوت 🐗⭐ https://whatsapp.com/channel/0029Vb7obv8Fy72937jJb32V"
     );
     try {
         const prompt = await translateToEnglish(originalPrompt);
